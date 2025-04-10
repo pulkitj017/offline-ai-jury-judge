@@ -75,12 +75,15 @@ Commit History:
 ${formattedCommitHistory}
 
 Evaluate the code and development process using these categories:
-1. Relevance (out of 10)
-2. Performance (out of 10)
-3. Security (out of 10)
-4. Cost (out of 10)
-5. Vulnerability (out of 10)
-6. Smart AI Usage (out of 10) – Determine if AI tools were used based on commit structure, naming, comments, and messages
+1. Relevance (out of 10) - How well the solution addresses the problem statement
+2. Performance (out of 10) - How efficiently the code operates
+3. Security (out of 10) - How well protected against threats
+4. Cost (out of 10) - How cost-efficient the implementation would be
+5. Vulnerability (out of 10) - How robust against unexpected inputs/conditions
+6. Smart AI Usage (out of 10) - Evaluate if and how AI tools were used in development based on:
+   - Commit message language and structure
+   - Code patterns, comments, formatting, and variable names
+   - Any indications of tool use (Copilot, ChatGPT, etc.) in messages or code
 
 Give a score out of 10 for each, along with a short justification. 
 Also calculate a final score by adding all scores and multiplying by 1.67 to get a result out of 100.
