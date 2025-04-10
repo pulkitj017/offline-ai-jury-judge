@@ -37,7 +37,7 @@ interface ReviewExplanations {
   aiUsage: string;
 }
 
-interface ReviewResponse {
+export interface ReviewResponse {
   scores: ReviewScores;
   explanations: ReviewExplanations;
 }
@@ -111,8 +111,8 @@ Return your evaluation in this exact JSON format:
 `;
 
       // Send the prompt to the local LLaMA 3.1 model
-      const response = await axios.post('http://localhost:11434/api/chat', {
-        model: 'llama3.1',
+      const response = await axios.post('https://pai-api.thepsi.com/api/chat', {
+        model: 'llama3.1:latest',
         messages: [
           {
             role: 'user',
@@ -120,7 +120,13 @@ Return your evaluation in this exact JSON format:
           },
         ],
         stream: false,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer psai_eb1856936c7646b1914d2ba64317997e`,
+        },
       });
+
 
       // Extract the LLaMA response
       const llamaResponse = response.data.message.content;

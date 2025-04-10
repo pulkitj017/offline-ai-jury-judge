@@ -68,7 +68,7 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // First, get the commit history
-      const gitAnalysisResponse = await fetch('/api/git/analyze', {
+      const gitAnalysisResponse = await fetch('http://localhost:3001/git/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -85,7 +85,7 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
       const commitHistory = gitAnalysisData.data;
 
       // Now, send the data to the review endpoint
-      const reviewResponse = await fetch('/api/review', {
+      const reviewResponse = await fetch('http://localhost:3001/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -6,7 +6,7 @@ import * as path from 'path';
 
 const execAsync = promisify(exec);
 
-interface CommitInfo {
+export interface CommitInfo {
   hash: string;
   author: string;
   email: string;

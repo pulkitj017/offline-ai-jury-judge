@@ -1,6 +1,10 @@
-
 import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
 import { ReviewService } from './review.service';
+
+export interface ReviewResponse {
+  success: boolean;
+  data: any;
+}
 
 class ReviewRequestDto {
   problemStatement: string;
@@ -13,7 +17,7 @@ export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
   
   @Post()
-  async reviewTeam(@Body() reviewRequestDto: ReviewRequestDto) {
+  async reviewTeam(@Body() reviewRequestDto: ReviewRequestDto): Promise<ReviewResponse> {
     const { problemStatement, teamSummary, commitHistory } = reviewRequestDto;
     
     if (!problemStatement || !teamSummary || !commitHistory) {

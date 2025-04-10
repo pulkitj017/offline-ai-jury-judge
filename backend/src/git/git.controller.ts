@@ -1,6 +1,6 @@
 
 import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
-import { GitService } from './git.service';
+import { GitService, CommitInfo } from './git.service';
 
 class AnalyzeRepoDto {
   repoUrl: string;
@@ -12,7 +12,7 @@ export class GitController {
   constructor(private readonly gitService: GitService) {}
   
   @Post('analyze')
-  async analyzeRepo(@Body() analyzeRepoDto: AnalyzeRepoDto) {
+  async analyzeRepo(@Body() analyzeRepoDto: AnalyzeRepoDto): Promise<{ success: boolean; data: CommitInfo[] }> {
     const { repoUrl, teamName } = analyzeRepoDto;
     
     if (!repoUrl || !teamName) {
