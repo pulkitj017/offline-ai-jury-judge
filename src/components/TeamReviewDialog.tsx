@@ -66,7 +66,11 @@ const TeamReviewDialog: React.FC<TeamReviewDialogProps> = ({ team, open, onClose
     return null;
   }
 
-  const overallScore = Object.values(team.scores).reduce((a, b) => a + b, 0) / 6;
+  // Use the total score provided by the LLM, or calculate it if not available
+  const totalScore = team.scores.total || 
+    Math.round(Object.entries(team.scores)
+      .filter(([key]) => key !== 'total')
+      .reduce((sum, [_, value]) => sum + value, 0) * 1.67);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -74,7 +78,7 @@ const TeamReviewDialog: React.FC<TeamReviewDialogProps> = ({ team, open, onClose
         <DialogHeader>
           <DialogTitle className="text-jury-primary text-2xl">Review Results: {team.name}</DialogTitle>
           <DialogDescription>
-            Overall Score: <span className="font-bold">{overallScore.toFixed(1)}/10</span>
+            Overall Score: <span className="font-bold">{totalScore}/100</span>
           </DialogDescription>
         </DialogHeader>
         
