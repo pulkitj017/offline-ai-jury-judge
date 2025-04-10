@@ -1,12 +1,30 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from 'react';
+import LoginPage from '@/components/LoginPage';
+import Dashboard from '@/components/Dashboard';
+import { TeamProvider } from '@/context/TeamContext';
 
 const Index = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const handleLogin = (email: string, password: string) => {
+    // Hardcoded credentials
+    if (email === 'admin@jury.local' && password === 'jury123') {
+      setIsAuthenticated(true);
+      return true;
+    }
+    return false;
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-jury-lightGray">
+      {!isAuthenticated ? (
+        <LoginPage onLogin={handleLogin} />
+      ) : (
+        <TeamProvider>
+          <Dashboard />
+        </TeamProvider>
+      )}
     </div>
   );
 };
