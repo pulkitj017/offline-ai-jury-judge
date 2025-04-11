@@ -70,7 +70,7 @@ const TeamReviewDialog: React.FC<TeamReviewDialogProps> = ({ team, open, onClose
   const totalScore = team.scores.total || 
     Math.round(Object.entries(team.scores)
       .filter(([key]) => key !== 'total')
-      .reduce((sum, [_, value]) => sum + value, 0) * 1.67);
+      .reduce((sum, [_, value]) => sum + value, 0) * 2.5);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -86,36 +86,42 @@ const TeamReviewDialog: React.FC<TeamReviewDialogProps> = ({ team, open, onClose
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ScoreCard 
-            title="Relevance" 
-            score={team.scores.relevance} 
-            explanation={team.explanations.relevance} 
+            title="AI Contribution" 
+            score={team.scores.aiContribution} 
+            explanation={team.explanations.aiContribution} 
           />
           <ScoreCard 
-            title="Performance" 
-            score={team.scores.performance} 
-            explanation={team.explanations.performance} 
-          />
-          <ScoreCard 
-            title="Security" 
+            title="Security & Access" 
             score={team.scores.security} 
             explanation={team.explanations.security} 
           />
           <ScoreCard 
-            title="Cost" 
-            score={team.scores.cost} 
-            explanation={team.explanations.cost} 
+            title="Scalability & Availability" 
+            score={team.scores.scalability} 
+            explanation={team.explanations.scalability} 
           />
           <ScoreCard 
-            title="Vulnerability" 
-            score={team.scores.vulnerability} 
-            explanation={team.explanations.vulnerability} 
+            title="Architecture" 
+            score={team.scores.architecture} 
+            explanation={team.explanations.architecture} 
           />
           <ScoreCard 
-            title="AI Usage" 
-            score={team.scores.aiUsage} 
-            explanation={team.explanations.aiUsage} 
+            title="Cost Optimization" 
+            score={team.scores.costOptimization} 
+            explanation={team.explanations.costOptimization} 
           />
         </div>
+        
+        <Separator className="my-4" />
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Application Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {team.explanations.applicationStatus}
+          </CardContent>
+        </Card>
         
         <DialogFooter className="mt-6">
           <Button onClick={onClose}>Close</Button>

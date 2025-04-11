@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 // Define types
@@ -9,21 +10,20 @@ export type Team = {
   reviewStatus: 'pending' | 'inProgress' | 'completed';
   commitHistory?: any[]; // To store the commit history from the backend
   scores?: {
-    relevance: number;
-    performance: number;
+    aiContribution: number;
     security: number;
-    cost: number;
-    vulnerability: number;
-    aiUsage: number;
+    scalability: number;
+    architecture: number;
+    costOptimization: number;
     total?: number;
   };
   explanations?: {
-    relevance: string;
-    performance: string;
+    aiContribution: string;
     security: string;
-    cost: string;
-    vulnerability: string;
-    aiUsage: string;
+    scalability: string;
+    architecture: string;
+    costOptimization: string;
+    applicationStatus: string;
   };
 };
 
@@ -108,25 +108,24 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
           // Generate mock scores and explanations
           const generateScore = () => Math.floor(Math.random() * 10) + 1;
           const scores = {
-            relevance: generateScore(),
-            performance: generateScore(),
+            aiContribution: generateScore(),
             security: generateScore(),
-            cost: generateScore(),
-            vulnerability: generateScore(),
-            aiUsage: generateScore(),
+            scalability: generateScore(),
+            architecture: generateScore(),
+            costOptimization: generateScore(),
             total: 0
           };
           
           // Calculate total score
-          scores.total = Math.round(Object.values(scores).reduce((sum, score) => sum + score, 0) * 1.67);
+          scores.total = Math.round(Object.values(scores).reduce((sum, score) => sum + score, 0) * 2.5);
           
           const explanations = {
-            relevance: `The solution addresses ${scores.relevance > 5 ? 'most' : 'some'} of the core requirements outlined in the problem statement.`,
-            performance: `Performance metrics indicate ${scores.performance > 5 ? 'good' : 'adequate'} response times and resource utilization.`,
-            security: `Security analysis revealed ${scores.security > 5 ? 'few' : 'several'} potential vulnerabilities in the implementation.`,
-            cost: `The solution demonstrates ${scores.cost > 5 ? 'efficient' : 'reasonable'} resource usage and scaling potential.`,
-            vulnerability: `Code review identified ${scores.vulnerability > 5 ? 'minimal' : 'moderate'} vulnerability concerns that may need addressing.`,
-            aiUsage: `The implementation shows ${scores.aiUsage > 5 ? 'innovative' : 'standard'} use of AI technologies to solve the problem.`,
+            aiContribution: `Analysis of commit messages and patterns indicates ${scores.aiContribution > 5 ? 'significant' : 'minimal'} use of AI assistance in development.`,
+            security: `The solution addresses ${scores.security > 5 ? 'most' : 'some'} of the security concerns and implements proper authentication and authorization.`,
+            scalability: `The architecture ${scores.scalability > 5 ? 'effectively supports' : 'may struggle with'} scaling to handle increased loads.`,
+            architecture: `Code organization is ${scores.architecture > 5 ? 'well-structured' : 'somewhat disorganized'} with appropriate separation of concerns.`,
+            costOptimization: `Resource utilization is ${scores.costOptimization > 5 ? 'efficient' : 'suboptimal'} which affects operational costs.`,
+            applicationStatus: `The application appears to be in ${Math.random() > 0.5 ? 'a completed state ready for deployment' : 'need of further refinement before deployment'}.`
           };
           
           return {

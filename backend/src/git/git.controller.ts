@@ -1,3 +1,4 @@
+
 import { Controller, Post, Body, HttpException, HttpStatus, Inject, forwardRef } from '@nestjs/common';
 import { GitService, CommitInfo } from './git.service';
 import { ReviewService } from '../review/review.service';
@@ -24,13 +25,15 @@ export class GitController {
     }
     
     try {
-      const commitHistory = await this.gitService.analyzeRepository(repoUrl, teamName);
+      // Get commits and files from the repository
+      const { commits: commitHistory, files } = await this.gitService.analyzeRepository(repoUrl, teamName);
       
-      // Process commits in batches and review each batch
+      // Process the repo and review it
       const reviewResults = await this.reviewService.reviewTeamCode({
         problemStatement,
         teamSummary: teamName,
-        commitHistory
+        commitHistory,
+        files
       });
 
       return { 

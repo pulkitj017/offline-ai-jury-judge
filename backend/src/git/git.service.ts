@@ -16,8 +16,19 @@ export interface CommitInfo {
   diff: string;
 }
 
+export interface FileInfo {
+  filename: string;
+  extension: string;
+  path: string;
+  content: string;
+  size: number;
+}
+
 export class GitService {
-  async analyzeRepository(repoUrl: string, teamName: string): Promise<CommitInfo[]> {
+  async analyzeRepository(repoUrl: string, teamName: string): Promise<{
+    commits: CommitInfo[],
+    files: FileInfo[]
+  }> {
     const sanitizedTeamName = teamName.replace(/[^a-zA-Z0-9]/g, '_');
     const tempDir = `/tmp/${sanitizedTeamName}`;
     
@@ -41,7 +52,13 @@ export class GitService {
           .map(hash => this.getCommitInfo(hash, tempDir))
       );
       
-      return commits;
+      // Get all files in the repository
+      const files = await this.getAllFiles(tempDir);
+      
+      return {
+        commits,
+        files
+      };
     } catch (error) {
       console.error('Error analyzing repository:', error);
       throw new Error(`Failed to analyze repository: ${error.message}`);
@@ -83,6 +100,50 @@ export class GitService {
       changedFiles,
       diff: diffData.trim()
     };
+  }
+  
+  private async getAllFiles(repoPath: string): Promise<FileInfo[]> {
+    const ignorePatterns = ['.git', 'node_modules', 'dist', 'build', '.cache', '.DS_Store'];
+    
+    const files: FileInfo[] = [];
+    
+    // Get all files recursively
+    async function readFilesRecursively(dir: string, baseDir: string) {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        const relativePath = path.relative(baseDir, fullPath);
+        
+        // Skip ignored directories and files
+        if (ignorePatterns.some(pattern => 
+          relativePath.includes(pattern) || entry.name.includes(pattern))) {
+          continue;
+        }
+        
+        if (entry.isDirectory()) {
+          await readFilesRecursively(fullPath, baseDir);
+        } else {
+          try {
+            const content = fs.readFileSync(fullPath, 'utf-8');
+            const extension = path.extname(entry.name).substring(1); // Remove the dot
+            
+            files.push({
+              filename: entry.name,
+              extension,
+              path: relativePath,
+              content,
+              size: fs.statSync(fullPath).size
+            });
+          } catch (error) {
+            console.error(`Error reading file ${fullPath}:`, error);
+          }
+        }
+      }
+    }
+    
+    await readFilesRecursively(repoPath, repoPath);
+    return files;
   }
   
   private async cleanUp(directory: string): Promise<void> {
