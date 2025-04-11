@@ -1,4 +1,3 @@
-
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 
@@ -48,9 +47,26 @@ export class ReviewService {
 
   async reviewTeamCode(reviewData: ReviewRequest): Promise<ReviewResponse> {
     try {
-      // Format the commit history for better prompt readability
-      const formattedCommitHistory = reviewData.commitHistory.map(commit => {
-        return `
+      // Process each commit individually and aggregate results
+      const commitResults = await Promise.all(
+        reviewData.commitHistory.map(commit => 
+          this.reviewSingleCommit(commit, reviewData.problemStatement, reviewData.teamSummary)
+        )
+      );
+      // Aggregate all commit review results
+      return this.aggregateReviewResults(commitResults);
+    } catch (error) {
+      this.logger.error(`Error reviewing team code: ${error.message}`);
+      return this.getDefaultReviewResponse();
+    }
+  }
+
+  private async reviewSingleCommit(
+    commit: CommitInfo, 
+    problemStatement: string, 
+    teamSummary: string
+  ): Promise<ReviewResponse> {
+    const formattedCommit = `
 Commit: ${commit.hash}
 Author: ${commit.author} (${commit.email})
 Date: ${commit.timestamp}
@@ -59,20 +75,18 @@ Files Changed: ${commit.changedFiles.join(', ')}
 Diff:
 ${commit.diff}
 `;
-      }).join('\n---\n');
 
-      // Create the prompt for the LLaMA model
-      const prompt = `
-You are an expert AI jury for a hackathon. A team has submitted the following GitHub commit history for a project solving this problem:
+    const prompt = `
+You are an expert AI jury for a hackathon reviewing a single commit. Context:
 
 Problem Statement:
-${reviewData.problemStatement}
+${problemStatement}
 
 Team Summary:
-${reviewData.teamSummary}
+${teamSummary}
 
-Commit History:
-${formattedCommitHistory}
+Commit Details:
+${formattedCommit}
 
 Evaluate the code and development process using these categories:
 1. Relevance (out of 10) - How well the solution addresses the problem statement
@@ -110,15 +124,10 @@ Return your evaluation in this exact JSON format:
 }
 `;
 
-      // Send the prompt to the local LLaMA 3.1 model
-      const response = await axios.post('https://pai-api.thepsi.com/api/chat', {
+    try {
+      const response = await axios.post('http://localhost:11434/api/chat', {
         model: 'llama3.1:latest',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
+        messages: [{ role: 'user', content: prompt }],
         stream: false,
       }, {
         headers: {
@@ -126,7 +135,6 @@ Return your evaluation in this exact JSON format:
           'Authorization': `Bearer psai_eb1856936c7646b1914d2ba64317997e`,
         },
       });
-
 
       // Extract the LLaMA response
       const llamaResponse = response.data.message.content;
@@ -153,6 +161,65 @@ Return your evaluation in this exact JSON format:
       this.logger.error(`Error reviewing team code: ${error.message}`);
       return this.getDefaultReviewResponse();
     }
+  }
+
+  private aggregateReviewResults(results: ReviewResponse[]): ReviewResponse {
+    type AggregatedReview = {
+      scores: ReviewScores;
+      explanations: {
+        [K in keyof ReviewExplanations]: string[];
+      };
+    };
+
+    const aggregated: AggregatedReview = {
+      scores: {
+        relevance: 0,
+        performance: 0,
+        security: 0,
+        cost: 0,
+        vulnerability: 0,
+        aiUsage: 0,
+        total: 0
+      },
+      explanations: {
+        relevance: [],
+        performance: [],
+        security: [],
+        cost: [],
+        vulnerability: [],
+        aiUsage: []
+      }
+    };
+
+    // Average scores and combine explanations
+    results.forEach(result => {
+      Object.keys(result.scores).forEach(key => {
+        if (key !== 'total') {
+          aggregated.scores[key] += result.scores[key] / results.length;
+        }
+      });
+      Object.keys(result.explanations).forEach(key => {
+        if (result.explanations[key] && aggregated.explanations[key]) {
+          aggregated.explanations[key].push(result.explanations[key]);
+        }
+      });
+    });
+
+    // Calculate total score
+    aggregated.scores.total = Object.keys(aggregated.scores)
+      .filter(key => key !== 'total')
+      .reduce((sum, key) => sum + aggregated.scores[key], 0) * 1.67;
+
+    // Convert the final result to ReviewResponse format
+    return {
+      scores: aggregated.scores,
+      explanations: Object.keys(aggregated.explanations).reduce((acc, key) => ({
+        ...acc,
+        [key]: aggregated.explanations[key]
+          .filter((exp, i, arr) => arr.indexOf(exp) === i)
+          .join(' ')
+      }), {}) as ReviewExplanations
+    };
   }
 
   private getDefaultReviewResponse(): ReviewResponse {

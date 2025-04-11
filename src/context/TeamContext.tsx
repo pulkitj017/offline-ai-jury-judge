@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 // Define types
@@ -67,13 +66,14 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Team not found');
       }
 
-      // First, get the commit history
+      // First, get the commit history and review results
       const gitAnalysisResponse = await fetch('http://localhost:3001/git/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           repoUrl: teamToReview.repoUrl,
-          teamName: teamToReview.name
+          teamName: teamToReview.name,
+          problemStatement
         })
       });
 
@@ -81,25 +81,7 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Failed to analyze git repository');
       }
 
-      const gitAnalysisData = await gitAnalysisResponse.json();
-      const commitHistory = gitAnalysisData.data;
-
-      // Now, send the data to the review endpoint
-      const reviewResponse = await fetch('http://localhost:3001/review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          problemStatement,
-          teamSummary: teamToReview.summary,
-          commitHistory
-        })
-      });
-
-      if (!reviewResponse.ok) {
-        throw new Error('Failed to review team');
-      }
-
-      const reviewData = await reviewResponse.json();
+      const { data } = await gitAnalysisResponse.json();
       
       // Update team with results
       setTeams(prev =>
@@ -108,9 +90,9 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
             ? {
                 ...team,
                 reviewStatus: 'completed',
-                commitHistory,
-                scores: reviewData.data.scores,
-                explanations: reviewData.data.explanations
+                commitHistory: data.commitHistory,
+                scores: data.review.scores,
+                explanations: data.review.explanations
               }
             : team
         )
