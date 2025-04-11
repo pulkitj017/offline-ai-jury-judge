@@ -1,5 +1,6 @@
 import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
 import { ReviewService } from './review.service';
+import { FileInfo } from '../git/git.service';
 
 export interface ReviewResponse {
   success: boolean;
@@ -10,6 +11,7 @@ class ReviewRequestDto {
   problemStatement: string;
   teamSummary: string;
   commitHistory: any[];
+  files: FileInfo[];
 }
 
 @Controller('review')
@@ -18,11 +20,11 @@ export class ReviewController {
   
   @Post()
   async reviewTeam(@Body() reviewRequestDto: ReviewRequestDto): Promise<ReviewResponse> {
-    const { problemStatement, teamSummary, commitHistory } = reviewRequestDto;
+    const { problemStatement, teamSummary, commitHistory, files } = reviewRequestDto;
     
-    if (!problemStatement || !teamSummary || !commitHistory) {
+    if (!problemStatement || !teamSummary || !commitHistory || !files) {
       throw new HttpException(
-        'Missing required fields: problemStatement, teamSummary, or commitHistory',
+        'Missing required fields: problemStatement, teamSummary, commitHistory, or files',
         HttpStatus.BAD_REQUEST
       );
     }
@@ -32,6 +34,7 @@ export class ReviewController {
         problemStatement,
         teamSummary,
         commitHistory,
+        files,
       });
       
       return { 
